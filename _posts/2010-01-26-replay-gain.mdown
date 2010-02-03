@@ -1,6 +1,6 @@
 ---
 layout: post
-categories: [mp3gain, replaygain, cmus, id3]
+tags: [mp3gain, replaygain, cmus, id3]
 title: "cmus: 支持replay gain的命令行播放器"
 ---
 

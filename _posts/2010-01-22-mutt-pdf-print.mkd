@@ -1,5 +1,5 @@
 ---
-category: mutt, print, dialog, mailcap
+tags: [mutt, print, dialog, mailcap]
 title: 如何方便的在mutt里面打印pdf文件
 layout: post
 ---

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 在heroku上面架nesta
-category: [ruby, sinatra, heroku, nesta]
+tags: [ruby, sinatra, heroku, nesta]
 ---
 
 一直说写下来如何架的这个博客，一直以“还有很多问题没解决”的理由拖着。结果现在问题

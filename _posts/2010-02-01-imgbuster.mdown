@@ -1,6 +1,6 @@
 ---
 layout: post
-categories: [ruby]
+tags: [ruby]
 title: 批量下载网页上图像的脚本
 ---
 

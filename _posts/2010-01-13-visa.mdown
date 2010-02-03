@@ -1,6 +1,6 @@
 ---
 layout: post
-categories: [life, australia]
+tags: [life, australia]
 title: 澳大利亚风格
 ---
 

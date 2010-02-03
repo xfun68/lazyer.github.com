@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 免费的国际长途和免费的国际短信
-categories: [sms, call, free]
+tags: [sms, call, free]
 ---
 
 ### 国际长途

@@ -1,6 +1,6 @@
 ---
-layout:post
-categories: [mutt, gmail, lbdb, bogofilter]
+layout: post
+tags: [mutt, gmail, lbdb, bogofilter]
 title: 用mutt和gmail打造舒服的电子邮件环境
 ---
 

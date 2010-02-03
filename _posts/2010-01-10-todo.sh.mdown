@@ -1,6 +1,6 @@
 ---
 layout: post
-categories: config, GTD
+tags: [config, GTD]
 title: 使用todo.sh和remind打造GTD系统
 ---
 
