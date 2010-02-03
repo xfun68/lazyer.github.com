@@ -20,3 +20,6 @@ the following post-commit hook.
     git add .
     git commit -a -m 'update'
     git push heroku master
+
+Also, if this git repository is hosted as "<youid>.github.com" repository on
+github, it would be deployed to github as well.
