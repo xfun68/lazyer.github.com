@@ -196,3 +196,16 @@ ul.posts {
   #related h2 {
     margin-bottom: 1em;
   }
+
+/*disqus*/
+#disqus_thread {
+    margin-top: 0.5em;
+    border-top; 3px "solid" #eee;
+    padding-top: 0em;
+    }
+
+#dsq-content .dsq-options {
+    background: none;
+}
+
+
