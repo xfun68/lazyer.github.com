@@ -1,0 +1,46 @@
+---
+layout: post
+title: 免费的国际长途和免费的国际短信
+categories: [sms, call, free]
+---
+
+### 国际长途
+
+因为skype打腐败的米国的800电话是不要钱的，而腐败的米国，恰恰就有提供免费越洋电话
+的800，所以就给我等第三世界穷人提供了一个省钱的方。
+
+1.  在skype里面，添加一个联系人，为电话号码 +18003733411 
+2.  拨打这个联系人，并对自动台说出“free call”，那边应达机觉得你说的够标准的话，
+会再念一次“free call”给你，然后拨号就是了，只不过国际号码不需要加 +
+
+### 国际短信
+
+有个[网站](http://for-ever.us)提供了免费的全球手机短信的功能，不过要输入验证码，
+而且只支持 *英文* 。反正是不要钱的，多多少少有些用处吧。我写了个脚本，从命令行里
+面发送，省得开网页了。
+
+
+    #!/usr/bin/env ruby
+    # coding: utf-8
+
+    #mechanize uses nogokiri, so hpricot is not needed
+    require 'mechanize'
+
+    url = "http://for-ever.us"
+    a = WWW::Mechanize.new
+    page = a.get(url)
+    form = page.forms.first
+    print "手机号码："
+    form['phonenumber'] = ARGV[0] || STDIN.gets.chomp
+    puts form['phonenumber']    if ARGV[0]
+    print "消息正文（英文）："
+    form['message'] = ARGV[1] || STDIN.gets.chomp
+    puts form['message']    if ARGV[1]
+    imgurl = url + '/' + (page/"img[@id=imgVerify]").first.attributes['src'].value
+    imgfile = "/tmp/smscaptcha.png"
+    open(imgfile, 'w') {|f| f.puts a.get_file(imgurl)}
+    system("feh #{imgfile}")
+    print "输入验证码："
+    captcha = STDIN.gets.chomp
+    form['verify']=captcha
+    form.submit

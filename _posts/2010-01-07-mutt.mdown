@@ -1,0 +1,147 @@
+---
+layout:post
+categories: [mutt, gmail, lbdb, bogofilter]
+title: 用mutt和gmail打造舒服的电子邮件环境
+---
+
+我使用mutt已经进入第4年了。4年里不断的对mutt环境的配置，使我越来越没有可能在将来
+放弃这个舒服的电子邮件环境。这篇文章的内容，不会涉及到很多mutt基本的设定，比如说
+编码、html和doc文件显示等等，而会更着重于我个人的日常使用习惯方面的东西－－也就
+是“我是怎么让mutt更听话的”。里面的内容，不光涉及mutt的配置，也有很多周边软件及
+gmail的配置。
+
+当然，每个人的使用习惯都不尽相同， *仅供参考* 。
+
+## 邮箱的配置
+
+### 电子邮箱
+
+我希望用一个邮箱作为网上的备份，不论是收到的邮件，还是发出的邮件，都要在里面有，
+选择当然是 *Gmail* ！假定我的gmail邮箱是 helloworld@gmail.com 。
+
+### 把其他邮箱的邮件转发到gmail
+
++ 如果邮箱foo支持转发，最简单不过，直接转发到 helloworld+foo@gmail.com。然后，在
+gmail里面，添加一个filter，has the words填“deliveredto:helloworld+foo”，action选
+择添加名为“foo”的tag。这样就方便在gmail中自动区分来自这个邮箱的邮件。
+
++ 如果邮箱foo支持pop3，可以设置gmail去自动收取，同样，收取的邮件，gmail可以自动
+加tag。
+
++ 如果你比较倒霉，有一个邮箱是exchange server的，那你需要用其他方法转发到gmail。
+我的方法是用fetchmail。缺点是用的smtp服务器不能带密码。
+
+    poll mailbox.foo.com
+        protocol imap
+        username "hello" there with password "world"
+        smtphost smtp.foo.com, another.smtp.com
+        smtpname "helloworld+foo@gmail.com"
+        ssl keep
+
+### mutt里收件箱配置
+
+我的习惯是，新邮件要永远在最顶端，邮件要以thread的方式显示，收件箱和发件箱是一起
+的，以便完整显示相关通讯内容。
+
+    set mbox_type=Maildir           # Maildir格式
+    set folder="~/.mail"            # 邮件目录
+    set mask="!^\\.[^.]"            # 忘了干什么的了
+    set mbox="+inbox"               # 收件箱是 ~/.mail/inbox
+    set record="+inbox"             # 发件箱是 ~/.mail/inbox
+    set postponed="+inbox"          # 草稿箱是 ~/.mail/inbox
+    set spoolfile="~/.mail/inbox"   # MDA直接把邮件递到我的收件箱
+    set sort=reverse-threads            # 新的在最上面，按thread归档
+    set sort_aux=last-date-received     # 同一个thread里面，最新的在最上面
+
+这里要提到的邮箱的格式，我用Maildir，也就是用单个文件代表一封邮件。Maildir比起一个
+邮箱为一个文件的mbox格式，有速度快，少死锁的优点；缺点是其他email客户端支持得少
+。我对于imap同步操作远程邮箱的方式并不喜欢，因为这样不方便我接收系统邮件（后面要
+提到），更不利于我在没有网络的时候阅读邮件。
+
+另外，我的习惯是，每年一次归档旧邮件，也就是说，我的 `~/.mail/inbox`，只存今年
+的邮件，往年的，被移到了 `~/.mail/2007`, `~/.mail/2008`和`~/.mail/2009`。
+
+再另外，可以设置下颜色，让自己为收件人的邮件和我自己发出去的邮件着重显示
+
+    color index yellow default ~p              # 发给我的，黄色
+    color index blue default ~P                # 我发的，蓝色
+    color index brightyellow default ~N        # 新的，黄色粗体
+    color index brightgreen default "~N ~p"    # 新发给我的，绿色粗体
+
+效果如图 
+
+![index view](http://kimag.es/share/86720536.png "Index view")     
+
+## 邮件收发
+
+收邮件，没什么好说的，我用 fetchmail 收gmail。发邮件，我目前用msmtp，也许将来会
+换用esmtp（原因后面要提到）。如下设置可以实现在不同的地方自动切换smtp服务器。
+
+    set sendmail="~/bin/sendemail"
+
+而在`~/bin/sendemail`脚本中
+
+    #!/bin/bash
+
+    hn=$(host $(curl -s icanhazip.com)|awk '{print $NF}')   # 获取域名
+    if [[ "$hn" = *.foo.* ]]; then
+        # 使用foo的smtp配置，lbdb的功能在将在下面提到
+        tee >(lbdb-fetchaddr -a) |/usr/bin/msmtp -a uq $@
+        #/usr/bin/msmtp -a uq $@
+    else
+        # 使用默认smtp配置，这里为gmail
+        tee >(lbdb-fetchaddr -a) |/usr/bin/msmtp $@
+    fi
+
+## 联系人管理
+
+我使用abook和lbdb管理联系人。对于自己觉得需要记忆的，手动写到abook里面去。而
+lbdb则负责将我所有发出邮件的收件人email地址记下来。
+
+`~/.lbdbrc`内容为 
+
+    METHODS="m_inmail m_abook"
+
+当然，在上面提到的邮件`~/bin/sendemail`脚本中的`lbdb-fetchaddr`命令就是用来提取
+收件人email地址的。
+
+在mutt中做如下设置，就能够在输入收件人的时候按Ctrl-T补全收件人email地址了。
+
+    set query_command = "lbdbq '%s'"
+
+## 自动备份所发邮件到gmail
+
+如果你发邮件的时候，使用的是gmail的smtp服务器，那么，这邮件就已经备份到gmail的发
+件箱去了。但是，当你不能使用gmail的smtp服务器的时候，可以这样。
+
+    my_hdr Bcc: roylzuo+sent@gmail.com
+
+## 系统邮件
+
+系统邮件，就是你的电脑发给你的这个帐号的，比如说cron的作业输出，比如nagios的系统
+过载警告等等。我喜欢在cron里面放一些奇怪的脚本，比如说自动查小说更新的阿什么的，
+如果有更新我就会收到email提醒，当然，这些email因为是我的电脑内部产生的，不会备份
+到gmail。
+
+如果你想要收到系统给你发的email，那么，你的系统里面要么就得装邮件发送服务器，比
+如exim4，因为系统邮件是靠`/usr/sbin/sendmail`发送的，要么，就像我，装个esmtp，因
+为esmtp可以带个sendmail的符号链接，可以用于投送系统邮件。esmtp，如果只是发送系统
+邮件不需要配置。另外，在你的MDA配置里面，要把系统邮件投送地址修改下，我用的是
+procmail。
+
+    DEFAULT=$HOME/.mail/inbox/      # 外来邮件投递地址，最后的/表示是Maildir
+    ORGMAIL=$DEFAULT                # 系统邮件投递地址
+
+## 反垃圾邮件过滤
+
+gmail自带的垃圾邮件过滤已经有一重保护了，但是偶尔也不够，我使用bogofilter做第二
+重的垃圾邮件过滤，需要在procmailrc里面加
+
+    :0fw
+    | bogofilter -u -e -p
+
+    :0:
+    * ^X-Bogosity: Spam.*
+    spam/
+
+至于怎么配置快捷去训练bogofilter，有兴趣的自己去查或者下载我的配置。

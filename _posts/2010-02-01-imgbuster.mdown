@@ -1,0 +1,45 @@
+---
+layout: post
+categories: [ruby]
+title: 批量下载网页上图像的脚本
+---
+
+叶子无聊乱扔[任务](http://forum.ubuntu.org.cn/viewtopic.php?f=163&t=255061)，我
+也无聊就随手写了个。自己也用不上，纯粹就是玩玩。没有exception handling，因为懒。
+写完就随手放到备份的目录去了，或许将来能用上。
+
+    #!/usr/bin/env ruby
+    # coding: utf-8
+    #   下载某个网页上的所有图片
+    require 'open-uri'
+    require 'hpricot'
+
+    def parse_img_list(url)
+        u = URI.parse(url)
+        p = Hpricot.parse(open(url).read)
+        img = (p/"img").collect {|v| u.merge(v.attributes['src']).to_s}.uniq.sort
+    end
+
+    def buster_img_list(*list)
+        list.collect {|i| 
+            Thread.new { open(i.split("/").last,'wb') {|f| f.puts open(i).read } } 
+        }.each {|t| t.join}
+    end
+
+    if __FILE__==$0
+        require 'optparse'
+        options = {}
+        parser = OptionParser.new { |opts|
+            opts.banner = "Usage: #{$0} [-l] URL"
+            options[:list_only] = false
+            opts.on('-l','--list-only','显示图片列表') { options[:list_only] = true }
+        }
+        parser.parse!
+        exit unless ARGV[0]
+        l = parse_img_list ARGV[0]
+        options[:list_only] ? l.each{|u| puts u } : (buster_img_list *l )
+    end
+
+比较了一下上面两个bash和python的版本。bash的，最短，不过是regular expression
+hell。python的，最长，if else一堆。不短不长的，就我这个ruby的，不过用了hpricot那
+个gem，怎么都透着股诡异的味道。

@@ -1,0 +1,29 @@
+---
+layout: post
+categories: [mp3gain, replaygain, cmus, id3]
+title: "cmus: 支持replay gain的命令行播放器"
+---
+
+使用[moc](http://moc.dapper.net)有一阵子了，主要看中它简单和能够听电台。前些天有
+位朋友问我moc是否支持replay gain，查了下才知道replay gain的含义，简单的说就是让
+所有的歌曲播放起来的时候的音量都是统一的。可惜的是moc并不支持这个，尽管作者似乎
+有意把这个添加进去。原来由于我听电台居多，对这个都没什么感觉。
+
+今天，出于“随便折腾下”的想法，搜索了下命令行下支持replay gain的播放器，大概有2个
+，mpd和cmus。mpd的c/s风格从来就不对我的胃口，所以根本就不考虑了；cmus查了下，也
+可以听电台的，装上去试了下，发现居然比mocp的功能更多。马上把moc卸载了。
+
+cmus的入门可以看[这篇](
+http://guerrillatech.wordpress.com/2008/03/17/spotlight-application-howto-rock-better-faster-harder-with-cmus-part-1-of/)，下面重点说说如何在cmus里面用replay
+gain。
+
+首先，你要启用replay gain，在cmus的选项里面，也就是view 7，replaygain改为track，也就
+是1。这样，cmus就会去读mp3文件的ID3 tag来找replay gain的信息。
+
+然后，你需要把replay gain的信息加到mp3文件里面去，我用下面的函数：
+
+    id3gain() { 
+        find $* -type f -iregex ".*\(mp3\|ogg\|wma\)" -exec mp3gain -r -s i {} \; 
+    }
+
+也不知道wmv到底有没有ID3支持，反正我这么写了，如果不行的话，将来统统转成ogg拉倒。

@@ -1,0 +1,53 @@
+---
+layout: post
+title: 在heroku上面架nesta
+category: [ruby, sinatra, heroku, nesta]
+---
+
+一直说写下来如何架的这个博客，一直以“还有很多问题没解决”的理由拖着。结果现在问题
+依然在那里，怎么架的倒是快忘得差不多了。下面大体说说过程吧。
+
+heroku是很赞的东西，甚至我觉得远胜google app engine。在heroku上部署一个基于ruby
+的网站，你往往只需要改几个参数就好，而完全不需要考虑backend那些东西。所有的代码
+都是用git的方式push过去，又方便又安全。
+
+我之所以选择这个很阳春的nesta，其实是因为我一方面实在不能忍受非vim的编辑器，另外
+一方面是因为数据库玩得不熟练，想不出有什么方法方便的用vim编辑数据库里面的帖子。
+nesta的帖子都是赤裸裸的markdown文本，正和我意。我还看过
+[jekyll](http://github.com/mojombo/jekyll)和
+[aerial](http://mattsears.com/2009/4/4/git-blogging-with-aerial)，但是jekyll所依
+赖的liquid不能处理中文文件名，懒得去改，而aerial所需要的
+[grit](http://github.com/mojombo/grit)在heroku是不能用的，所以最后都放弃了。值得
+注意的是，jekyll和grit的作者是同一个人，而且他是github的创始人之一，很天才的
+ruby程序员，写了不少很棒的库。
+
+2个heroku架站不可少的文件：
+
+1. `config.ru`: 告诉rack你的网站如何运行的
+
+    require "rubygems"
+    require "sinatra"
+    require "app"
+
+    Sinatra::Application.set :root, ::File::dirname(__FILE__)
+
+    run Sinatra::Application
+
+2. `.gems`：告诉heroku你需要哪些heroku自己没有的gem，我就有一行
+
+    maruku --version '>=0.6.0'
+
+自己用rackup试下可以在本地运行之后，在nesta所在目录里面依次执行以下命令：
+
+    heroku create myapp     # 创建 myapp.heroku.com 网站，并添加成git的远程branch
+    git commit -a -m 'init upload'      # commit变更
+    git push heroku master  # push 到 heroku
+
+如果没意外的话，你就可以到 myapp.heroku.com 看你的网站了。
+
+值得注意的有：
+
+- heroku只认 *master* 分支！你可以把其他分支push到heroku，但是不会更新成你的网站
+。
+- `heroku help` 可以看可用的heroku命令。(用db的人，估计会很喜欢heroku db命令)
+- `heroku log` 可以看远程log，debug非常的好用。

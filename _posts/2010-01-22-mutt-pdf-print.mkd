@@ -1,0 +1,37 @@
+---
+category: mutt, print, dialog, mailcap
+title: 如何方便的在mutt里面打印pdf文件
+layout: post
+---
+
+mutt的打印，对于我一直是个问题。两方面的：
+
+1.  邮件打印，我在`.muttrc`里面用下面的命令，将邮件转成漂亮的pdf文件，可惜不支持中文
+
+    set print_command="enscript -Email -G --word-wrap -f Palatino-Roman@11"
+
+2.  pdf附件打印，我总是这样操作：按 *v* 看附件 -> 打开pdf附件 -> 菜单选择打印
+.... 现在我嫌这样麻烦了，于是有了这次折腾。
+
+咱们的目标是，在附件列表，对着pdf文件，直接按 *p* ，就会跳出纯terminal的窗口让你
+选择打印机，你按上下键选择，回车，搞定。
+
+多谢 `mailcap` 的`print`参数和`dialog`，我这个要求还是很好实现的。
+
+`~/.mailcap`的pdf对应行：
+
+    application/pdf; pdftotext -enc UTF-8 %s /dev/stdout; copiousoutput;print=select-print.sh %s
+
+这里就指定了打印参数，你按 *p* 的时候，mutt就会按照文件类型自己去找打印命令的。
+
+`select-print.sh`：选择打印机打印
+
+    #!/bin/bash
+    printer=$(dialog --stdout --title "Printing $*" --menu "Select a printer:" 0 0 0 $(lpstat -v |awk '{print $3,$4}' |sed -r 's-^(.*?): (.*)$-\1 \2-'))
+    [ ! -z $printer ] && lpr -P $printer $*
+
+如果选择的打印机不为空，就用所选的打印机打印，简单吧！
+
+截个图看看
+
+![打印机选择](http://kimag.es/share/17597429.png)

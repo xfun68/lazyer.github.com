@@ -1,0 +1,225 @@
+---
+layout: post
+categories: config, GTD
+title: 使用todo.sh和remind打造GTD系统
+---
+
+最开始知道David Allen的[《Getting Things Done: the art of stress-free
+productivity》
+](http://www.amazon.com/Getting-Things-Done-Stress-Free-Productivity/dp/0142000280)是2年前的事情了。不过我一直对于这本书的内容感到怀疑，我并不觉得它会给我的生活带来什么了不得的改变。直到最近，出于“看看再说”的态度，我读了这本书，并用[todo.sh](http://todotxt.com)和remind完成了初步的GTD系统，我才发现David
+Allen的那套东西，是真真切切有用的（尽管我不喜欢他描述东西那种口气）。没有看过的
+人可以去看看，无论如何，我以后也许会再看第二遍。是2年前的事情了。不过我一直对于
+这本书的内容感到怀疑，我并不觉得它会给我的生活带来什么了不得的改变。直到最近，出
+于“看看再说”的态度，我读了这本书，并用todo.sh和remind完成了初步的GTD系统，我才发
+现David
+Allen的那套东西，是真真切切有用的（尽管我不喜欢他描述东西那种口气）。没有看过的
+人可以去看看，无论如何，我以后会把这本书再看第二遍。
+
+相信朋友们都知道我是“键盘控”，所以我选用全命令行的软件做GTD系统，应该是不意外的
+。曾经自己写了个[rtc](http://github.com/roylez/rtc)，用的是
+[rememberthemilk](http://rmilk.com)的服务，虽然所有的东西都备份到了网上，但是命
+令回馈实在是慢，那里有todo.sh用起来畅快呢？
+
+## todo.sh 
+
+todo.sh，是个基于awk的shell脚本，看上去简陋，其实功能蛮全的。用其他语言比如
+python/ruby自己写一份也不会太难。我现在在report方面不是太满意，也许以后有时间了
+会roll my own。先说说基本使用，然后是一些配置。
+
+### 基本使用
+
+看帮助：
+
+    todo.sh help
+
+添加新todo：
+
+    # 添加到 +blog project中，context为 @home
+    todo.sh a +blog remind 和 todo.sh @home
+
+查看列表:
+
+    todo.sh ls
+
+完成事件：
+
+    todo.sh do 3
+
+删除事件
+
+    todo.sh rm 3
+
+改变事件优先级：
+
+    todo.sh p 3 a
+
+列表显示的时候，todo.sh会把优先级高的排在前面并用不同的颜色标出来，非常贴心。它
+支持任意关键字搜索，所以，你用`todo.sh ls @home`就可以把在`@home` contex下的所有
+事件列出来。下面的是我的目前的todo列表。
+
+![todo列表](http://dl.getdropbox.com/u/243979/screenshot/shot201001101335.png)
+
+### 基本配置
+
+配置文件是`~/.todo.cfg`，我觉得比较有用点的选项
+
+    # 默认动作，这样直接输入todo.sh就会打印列表了
+    export TODOTXT_DEFAULT_ACTION='ls'
+    # 删除事件的时候，不保留空行
+    export TODOTXT_PRESERVE_LINE_NUMBERS=0
+    # 删除事件不要让我确认，直接删除
+    export TODOTXT_FORCE=1
+
+为了方便，我设了这么些个命令别名
+
+    alias t="todo.sh"
+    tn() {todo.sh ls $* |egrep -v 'MAYBE|WAIT'}
+    alias th="todo.sh ls @home"
+    alias tw="todo.sh ls @work"
+    alias td="todo.sh |egrep 'WAIT|MAYBE'"
+
+## remind
+
+remind真的是一个强到不行的软件，如果说你不同意这个观点，那其实是你不会用。我真正
+体会到remind的好，也是在第三次安装它之后。比较好的remind的入门，有[43folder的这
+篇文章](http://www.43folders.com/2005/02/24/guest-mike-harris-looks-at-remind)。
+remind是一个日程软件，也就是用来记录日期上的tickler和deadline的，不是用来做todo
+列表的，明白了这一点你才能让它真正发挥出作用来。David Allen的书里对calendar和
+next action list的不同有详细的描述。
+
+这里我说一下我是怎么用remind建立我的calendar系统的。
+
+### 事件分类
+
+日程文件，我都放在`~/.reminders/`下，分为`0_settings.rem`，`1_special_days.rem`
+，`2_repeat.rem`，`3_goals.rem`，`4_todo.rem`，`holiday.rem`。这样一来，remind加
+载事件的时候，会按照我想要的顺序加载。
+
+`holiday.rem`是用脚本从google calendar自动转换过来的公共假期列表。用到了
+`updatecalendar.sh`和`ical2rem.rb`两个脚本。
+
+*updatecalendar.sh* : 从google calendar下载icalendar格式的澳大利亚假期并转成
+remind格式
+
+    #!/bin/bash
+    R=$HOME/.reminders
+    HOLIDAY=http://www.google.com/calendar/ical/en.australian%23holiday%40group.v.calendar.google.com/public/basic.ics
+    wget -q -O- $HOLIDAY |ical2rem.rb -o > $DIR/holiday.rem
+
+*ical2rem.rb* : icalendar格式转成remind格式
+
+
+    #!/usr/bin/env ruby
+    # coding: utf-8
+    require 'date'
+    require 'time'
+
+    def each_ical_event(content)
+        block = ''
+        start = false
+        content.each_line {|l|
+            case l.chomp
+            when 'BEGIN:VEVENT'
+                start = true
+                next
+            when 'END:VEVENT'
+                satrt = false
+                yield block
+                block = ''
+                next
+            end
+            if start
+                block << l
+            end
+        }
+    end
+
+    def ical_to_rem(event, omit=false)
+        d = Time.parse(event.match(/DTSTART;VALUE=DATE:(\d+)/)[1]).to_date
+        m = event.match(/SUMMARY:(.*)$/)[1].chomp
+        key = omit ? "OMIT" : "REM"
+        "#{key} #{d.strftime("%d %b %Y")} MSG #{m}"
+    end
+
+    if __FILE__==$0
+        require 'optparse'
+        options = {}
+        parser = OptionParser.new { |opts|
+            opts.banner = "Usage: #{$0} [options] file"
+            options[:omit] = false
+            opts.on('-o','--omit','omit in calendar') { options[:omit] = true }
+        }
+        parser.parse!
+        file = ARGV[0] ? open(ARGV[0]).read : STDIN.read
+        each_ical_event(file) { |b|
+            puts ical_to_rem(b, options[:omit])
+        }
+    end
+
+`0_settings.rem`里面是一些基本的配置，我这里就只有颜色配置和包含`holiday.rem`
+
+    SET Esc   CHAR(27)
+    SET Nrm   Esc + "[0m"
+    SET Blk   Esc + "[0;30m"
+    SET Red   Esc + "[0;31m"
+    SET Grn   Esc + "[0;32m"
+    SET Ylw   Esc + "[0;33m"
+    SET Blu   Esc + "[0;34m"
+    SET Mag   Esc + "[0;35m"
+    SET Cyn   Esc + "[0;36m"
+    SET Wht   Esc + "[0;37m"
+    SET Gry   Esc + "[30;1m"
+    SET BrRed Esc + "[31;1m"
+    SET BrGrn Esc + "[32;1m"
+    SET BrYlw Esc + "[33;1m"
+    SET BrBlu Esc + "[34;1m"
+    SET BrMag Esc + "[35;1m"
+    SET BrCyn Esc + "[36;1m"
+    SET BrWht Esc + "[37;1m"
+
+    include [filedir()]/holiday.rem
+
+`1_special_days.rem`，主要用来记录比较有意义的日子，比如家人生日
+
+    # 定义函数，显示是“第多少年”
+    FSET _yr_num(yr) ORD(YEAR(TRIGDATE()) - yr)
+    # 将显示离结婚纪念日还有几天，到期3天内都有提醒
+    REM Jan 25 +3 msg [_yr_num(2008)] anniversary day %b %
+
+`2_repeat.rem`，日常重复性的事件，比如健身计划，例会
+
+    # 每年1月1日归档邮件
+    REM Jan 1 +1 msg Archive emails %
+    # 2周一次交房租
+    REM Dec 5 2009 *14 MSG Rent fee due %
+
+`3_goals.rem`，近期目标或任务的截止日期
+
+    # 提醒还有多少天就要飞上海了
+    rem feb 7 2010 +253 msg Fly Shanghai %b %
+
+`4_todo.rem`，这个是todo.sh的输出，去掉了彩色，删掉最后两行，不显示标有"MAYBE"和
+"WAIT"的事件
+
+    rem run todo.sh -p |egrep -v "MAYBE|WAIT"|sed 'N;$!P;$!D;$d' %
+
+为了在`rem`命令的输出里面区分各个分类，比如就上面的`4_todo.rem`，写成这样
+
+    # [Red]是setting里面定义的颜色。 %"%"里面的内容，
+    # 会在打印的日程表里面显示，这里其实就是不显示
+    MSG [Red]TODO: %"%" [Nrm] %
+    rem run todo.sh -p |egrep -v "MAYBE|WAIT"|sed 'N;$!P;$!D;$d' %
+    # 打印空行一条，你也可以这样 MSG ------ %"%" %
+    MSG %"%" %
+
+咱现在`rem`命令效果如下，pp吧？
+
+![rem效果](http://kimag.es/share/8341580.png)
+
+命令行的日程显示，我是有个这样的命令别名
+
+    alias c='remind -w$(tput cols) -mc+lc2 ~/.reminders'
+
+效果如图
+
+![calendar效果](http://kimag.es/share/41229582.png)

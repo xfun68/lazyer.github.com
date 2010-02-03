@@ -1,0 +1,52 @@
+date: Fri Jan 22 23:48:01 EST 2010
+categories: xterm, vim, screen
+
+# 在screen里面改变光标颜色
+
+如果你用vim和xterm，在vim可以依据是插入模式还是命令模式改变光标颜色，只需要在
+`.vimrc`里面添加：
+
+    :silent !echo -ne "\e]12;IndianRed2\007"
+    let &t_SI = "\e]12;RoyalBlue1\007"
+    let &t_EI = "\e]12;IndianRed2\007"
+    autocmd VimLeave * :!echo -ne "\e]12;green\007"
+
+第一句是在进入vim的时候，把光标变成红的；第二句定义进入插入模式，光标变成蓝色的
+；第三句的意思是插入模式结束，光标变回红的；第四句，设定vim退出的时候，光标变成
+绿色。
+
+这里用到了xterm改变光标颜色的escape sequence，根据[定义
+](http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)，xterm改变光标颜色的命
+令是：
+
+    OSC Ps ; Pt BEL
+
+这里 _OSC_ 就是 `\e]`，改颜色的话， _PS_ 就是12， _Pt_ 是有效的颜色的名字，在[这
+里](http://mkaz.com/ref/xterm_colors.html)可以查， _BEL_ 就是响铃，`\a`或者
+`\007`，但是我发现vim里面写`\a`不行。
+
+但是，在screen里面，上面的代码就不行了。原因是screen的escape sequence同xterm的，
+是有不同的，而且screen没有提供改光标颜色的命令，怎么办？答案是，screen可以把
+escape sequence传给host的终端的，格式如下
+
+    ESC P Sequence ESC \
+
+所以，在xterm里的screen里的vim里面，要动态改变光标颜色，可以：
+
+    "dynamic cursor color for xterm \033=>\e  007=>\a (BEL)
+    if &term =~ "xterm"
+        :silent !echo -ne "\e]12;IndianRed2\007"
+        let &t_SI = "\e]12;RoyalBlue1\007"
+        let &t_EI = "\e]12;IndianRed2\007"
+        autocmd VimLeave * :!echo -ne "\e]12;green\007"
+    elseif &term =~ "screen"    " screen in urxvt or xterm
+        :silent !echo -ne "\eP\e]12;IndianRed2\007\e\\"
+        let &t_SI = "\eP\e]12;RoyalBlue1\007\e\\"
+        let &t_EI = "\eP\e]12;IndianRed2\007\e\\"
+        autocmd VimLeave * :!echo -ne "\eP\e]12;green\007\e\\"
+    endif   
+
+这里对`\`进行了下转义。
+
+不过......这样折腾有个side effect，那就是：你进入vim，光标的颜色改变了，然后你转
+到其他窗口，会发现光标跟xterm里面的一模一样的....
