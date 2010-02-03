@@ -1,0 +1,22 @@
+Instructions on deloying jekyll application on heroku
+-------------------------------------------------------
+
+This is inspired by the instruction given by
+[jstorimer](http://www.jstorimer.com/2009/12/29/jekyll-on-heroku.html) .
+
+As you can see, I have two extra files in root directory: 
+`app.rb` and `config.ru`. They will be copied to *_site* when you run jekyll,
+and they make the whole site look like a Sinatra application.
+
+*_site* is listed in `.gitignore` and would not be pushed to github, but this
+directory is also a git repository whose remote is heroku. So, it is very easy
+to use a hook to deploy your changes to heroku after a successful commit. I use
+the following post-commit hook.
+
+    #!/bin/bash
+
+    jekyll
+    cd $GIT_DIR/../_site
+    git add .
+    git commit -a -m 'update'
+    git push heroku master
