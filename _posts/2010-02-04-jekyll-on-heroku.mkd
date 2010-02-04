@@ -1,0 +1,78 @@
+---
+title: 在heroku上用jekyll做博客
+layout: post
+tags: [heroku,jekyll,sinatra,ruby,github]
+---
+
+不久前我刚刚提到在[heroku](http://heroku.com)如何用[nesta](http://github.com/gma/nesta)，那个时候说我曾经试过[jekyll](http://github.com/mojombo/jekyll)，但是因为中文支持不好而放弃了。最新的折腾结果表明，其实毛病不在jekyll，而是在我clone回来的jekyll博客所用的markdown处理模块。我克隆回来的那个很流行的[tpw版](http://github.com/mojombo/tpw)，用的是Rdiscount，问题就出在它身上，改下 `_config.yml` ，换成Maruku就好了。下面说说现在这个博客是怎么部署的。
+
+jekyll是用来把一堆你设计好的框架和你用诸如Markdown、textile写的帖子一起编译成一个完整的静态html网站的程序。一般来说，一个jekyll项目的目录里面大约有这么些文件
+
+    ------  _config.yml     jekyll编译参数
+    |`----  atom.xml        feed框架
+    |`----  index.html      主页框架
+    |`----  css             样式库目录
+    |`----  image           图片目录
+    |`----  _layouts        页面布局模板目录
+    |  |
+    |  |`----  post.html        帖子模板
+    |   `----  default.html     默认模板
+    |`----  _posts          帖子目录
+    |  |
+    |  |`----  2010-01-16-git-dropbox.mdown     一个帖子
+    |  |`....
+    |
+     `----  _site           编译好的网站存放目录
+
+我希望把真正的代码放在github，把`_site`目录放在`.gitignore`里面，避免把编译后生成的文件添加到git的repository的麻烦。而每次commit新的帖子的时候，我希望在heroku自动redeploy。显然，git的hook是必须的。
+
+我做了下面的这些事情
+
+1.  整个网站代码目录，与github的一个叫做[roylez.github.com](http://github.com/roylez/roylez.github.com)的项目关联。
+2.  `_site`目录写在`.gitignore`里面，这样github上只保留我的源代码。
+3.  `_site`目录里面：
+    +   执行`git init`初始化成一个git目录。
+    +   执行`heroku create roylez`，添加heroku到远程代码库列表，并初始化 http://roylez.heroku.com 域名。
+4.  在网站代码目录里面，进入`.git/hooks`，编辑文件`post_commit`，这样每次commit执行就自动会在heroku部署更新后的网站。
+    
+        #!/bin/bash
+        #
+        jekyll
+        cd $GIT_DIR/../_site
+        git add . 
+        git commit -a -m 'update' 
+        git push heroku master
+
+5.  由于heroku只能部署基于rack的网站，需要添加两个文件
+
+`config.ru`: rack配置文件
+    
+    require 'blog'
+    run Sinatra::Application
+
+`blog.rb`: sinatra主文件
+
+    #!/usr/bin/env ruby
+    # coding: utf-8
+    require 'rubygems'
+    require 'sinatra'
+
+    set :public, File.dirname(__FILE__)
+
+    # This before filter ensures that your pages are only ever served
+    # once (per deploy) by Sinatra, and then by Varnish after that
+    before do
+        response.headers['Cache-Control'] = 'public, max-age=31557600' # 1 year
+    end
+
+    get '/' do
+        File.read('index.html')
+    end
+
+    get '/*' do
+        File.read(params['splat'].first)
+    end
+
+值得注意的是： *github是支持jekyll的* 。如果有一个项目叫做你有一个项目叫`<uid>.github.com`，而且里面有一个index.html的话，github会自动用jekyll来编译这个项目，生成的结果，就放在 `http://<uid>.github.com`，所以，现在其实有不少人用github做自己主页的。当然，我还是更倾向用heroku，毕竟herok是专业做hosting的，可以用到的服务和功能也更多。
+
+总之，现在这个网站的代码在 http://github.com/roylez/roylez.github.com ，而页面呢，在 http://roylez.heroku.com 和 http://roylez.github.com 都可以看到。
