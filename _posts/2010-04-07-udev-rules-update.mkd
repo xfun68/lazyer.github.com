@@ -6,6 +6,7 @@ title: udev的自动挂载规则
 
 用arch的坏处在于，东西往往不知不觉就升级了，以前用得好好的配置，说不准哪天就不行了。昨天，给Amy拷个文件，插上u盘，结果发现不认中文了，而且u盘的的所有者变成了`root:root`。没办法，祭出man和google大杀器，于是现在改成这样了：
 
+    ACTION=="add", KERNEL=="sd[b-z][0-9]", RUN+="/bin/mkdir -p /media/usbhd-%k"
     ACTION=="add", KERNEL=="sd[b-z][0-9]", RUN+="/bin/mount -t auto -o rw,utf8,noauto,sync,dirsync,gid=100,umask=002,noatime /dev/%k /media/usbhd-%k", OPTIONS="last_rule"
     ACTION=="remove", KERNEL=="sd[b-z][0-9]", RUN+="/bin/umount -l /media/usbhd-%k"
     ACTION=="remove", KERNEL=="sd[b-z][0-9]", RUN+="/bin/rm -rf /media/usbhd-%k", OPTIONS="last_rule"
