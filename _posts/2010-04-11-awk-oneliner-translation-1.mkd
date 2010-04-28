@@ -4,7 +4,11 @@ tags: [awk, 翻译]
 title: 详解著名的awk oneliner，第一部分：空行、行号和计算
 ---
 
->   偶然在网上看到有人注释过的<awk oneliner>，而且注释的人声称“全部弄懂这些就已经是awk高手了”，而我也一直想学下awk又懒得花时间，然后就觉得这个东西一定很适合我。为了督促自己看完这个系列，决定整个给翻译一遍。说实话看了第一篇之后觉得awk的语句也不是那么天书了。原作者是Peteris Krumins，一个很酷的家伙，你可以在titter上follow他(Peteris Krumins)。
+>   偶然在网上看到有人注释过的《awk oneliner》，而且注释的人声称“全部弄懂这
+>   些就已经是awk高手了”，而我也一直想学下awk又懒得花时间，然后就觉得这个东
+>   西一定很适合我。为了督促自己看完这个系列，决定整个给翻译一遍。说实话看了
+>   第一篇之后觉得awk的语句也不是那么天书了。原作者是Peteris Krumins，一个很
+>   酷的家伙，你可以在titter上follow他(Peteris Krumins)。
 
 原文请见：http://www.catonmat.net/blog/awk-one-liners-explained-part-one/
 
