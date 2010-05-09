@@ -1,0 +1,9 @@
+---
+layout: post
+tags: [screen]
+title: 操作screen里面的screen
+---
+
+以前一直对这个比较闹心，screen里面ssh到别的机器，又挂了screen，结果就不知道怎么切换远程screen的窗口了。尽管早就知道可以更改远程的escape定义，但是总觉得这样不是个好办法－－我哪里记得清哪个screen用哪个escape阿，而且，这样也改变了个人的按键习惯，不舒服的。
+
+今天突然想起来，就查了下，原来要给里面的screen发操作，^AA就可以了。比如说要切换到里面的第0个窗口，那就是^AA0，简单。
