@@ -1,7 +1,7 @@
 ---
 layout: post
 tags: [awk,translation,tutorial]
-title: 详解著名的awk oneliner，第一部分：选择性输出特定行
+title: 详解著名的awk oneliner，第三部分：选择性输出特定行
 ---
 
 ## 输出文件的前10行（模拟 head -n 10 ）
