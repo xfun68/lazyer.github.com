@@ -1,0 +1,52 @@
+---
+layout: post
+tags: [archlinux,ruby, rvm, rake, rails]
+title: Archlinux下安装rvm来管理不同版本的ruby
+---
+
+事情的起因是，上个星期，想装rails来玩玩。``gem install rails``轻松装了rails，建立了个demo的project，等到我执行
+
+    rake db:create RAILS_ENV='development'
+
+马上蹦出来错误说rails需要rubygems的版本大于1.3.2，而我的rubygems版本是1.3.1。
+
+怎么办，装个旧版本的rails？我一开始也是这么想的，rails卸了再装，都试到2.1.x的去了，就是不行。rake也降级使用，还是不行。天杀的，难道rails出来第一条rubygems已经到1.3.2去了？明显是不可能的，但是我也没心思仔细去琢磨到底是为什么。
+
+升级系统的rubygems，确实很简单
+
+    sudo gem update --system 
+
+一句话就可以做到，但是我不想这么做，因为rubygems现在是在ruby 1.9的那个包里面的，我不想把系统弄得一团糟。网上的讨论对于ruby 1.9自带一个过时的gem系统也很有微词，但是没办法，开发组那边似乎不care......最新的rubygems，已经是1.3.7了，我也闹不清他们为什么在加入ruby官方软件包之后还开发得这么带劲，这明显是会给社区带来版本兼容性的问题的..........
+
+=============以上都是废话，可以不看====================
+
+RVM就是为了解决这种问题的。rvm，大概是ruby version manager的简称，让你简单的管理多个版本的ruby，让我想起了[modules](http://modules.sf.net)。
+
+安装很简单（就是装完了在Archlinux下不能玩）：
+
+    gem install rvm
+    rvm-install
+
+这样就好了！会提示你要把一段代码加到你的.bashrc最后的，我加到.zshrc最后了。其实是rvm这个shell函数的定义。
+
+安装不自带rubygems的ruby 1.8.7
+
+    rvm install 1.8.7
+
+.....编译不能通过。以为是rvm不够新，那用这个命令抓最新的rvm回来！
+
+    rmv update --head
+
+再编译ruby 1.8.7，..............还是不能通过（我的思路一定有问题）。去看看那make.error.log，一个openssl相关的错误，google都不知道为什么。
+
+灵光一动，去翻archlinux的ruby的PKGBUILD，原来有个openssl 1.0的补丁！原来ruby不能跟这高级的openssl 1.0一块编的，要打补丁.....
+
+现在的问题是怎么打了，因为用的是rvm。几番鼓捣下，在~/.rvm/src里面找到了源代码目录，打上补丁，终于装上了ruby 1.8.7。
+
+接下来便是
+
+    rvm --default ruby-1.8.7-p249
+    rvm gem install rails
+    rvm gem install sqlite3-ruby    (sqlite3这个gem是给ruby 1.9用的！)
+
+然后，再回到我的项目目录，执行rake命令，什么回显也没有，成功了！
