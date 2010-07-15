@@ -10,6 +10,6 @@ title: 用dropbox做私有git服务器
 服务，突然想起咱有dropbox。
 
 方法很简单，在dropbox的目录里面用git init建立一个repository，然后，在项目目录里
-面（当然也是个git目录），使用git remote add把这个目录加为远程源，git push下，搞
+面（当然也是个git目录），使用``git remote add``把这个目录加为远程源，``git push``下，搞
 定！
 
