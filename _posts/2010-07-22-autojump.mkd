@@ -1,0 +1,29 @@
+---
+layout: post
+tags: [zsh,bash,archlinux,cd]
+title: joelthelion的autojump
+---
+
+知道[autojump](http://wiki.github.com/joelthelion/autojump/)是几天前的事情。最开始的时候，作者只是在Archlinux的论坛里面贴出了自己的bash版本，结果帖子很快就火了，马上有人添加了zsh的兼容脚本，等我从[lifehacker](http://www.lifehacker.com)看到的时候，这个小东西已经进了Archlinux的community软件源了。不常逛英文的论坛，确实难以赶上时代的步伐阿！
+
+好了，说说这个东西是干什么的吧。说简单点，它统计你访问目录的次数并自动排序，你下次敲
+
+    j abc
+
+的时候，它会自动将你的所在目录变为含有``abc``的最常去的那个。
+
+安装很简单，Archlinux下直接
+
+{% highlight bash %}
+pacman -S autojump
+{% endhighlight %}
+
+不过安装完了之后，要修改``~/.bashrc``，其实就是source了``/etc/profile.d/autojump.bash``。对于用zsh的人，要source的是``/etc/profile.d/autojump.zsh``。我的``.zshrc``是在很多台不同发行版不同版本的zsh下共用的，所以我把这行放到了``~/.zshrc.local``。
+
+完事之后，输入几个cd之后，便可以用``jumpstat``来查看最近的跳转记录了。
+
+值得注意的是，autojump是用Python写的，东西不长，也就100来行，重点在于怎么实现的点子上。另外一个启示就是，现在见过太多用其他语言扩充Shell功能的了，其实还是说明Shell的语言功能还是哨弱。让我想起了那个著名关于Lisp的笑话。
+
+> We hacked most of Lisp together with Perl
+
+![lisp joke](http://imgs.xkcd.com/comics/lisp.jpg)
