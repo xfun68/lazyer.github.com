@@ -4,6 +4,9 @@ tags: [zsh,bash,archlinux,cd]
 title: joelthelion的autojump
 ---
 
+> feedburner没有被墙的时候，总是不能搞对我的帖子的html版式；现在被墙之后，居然突然就长进了.... 
+
+
 知道[autojump](http://wiki.github.com/joelthelion/autojump/)是几天前的事情。最开始的时候，作者只是在Archlinux的论坛里面贴出了自己的bash版本，结果帖子很快就火了，马上有人添加了zsh的兼容脚本，等我从[lifehacker](http://www.lifehacker.com)看到的时候，这个小东西已经进了Archlinux的community软件源了。不常逛英文的论坛，确实难以赶上时代的步伐阿！
 
 好了，说说这个东西是干什么的吧。说简单点，它统计你访问目录的次数并自动排序，你下次敲
