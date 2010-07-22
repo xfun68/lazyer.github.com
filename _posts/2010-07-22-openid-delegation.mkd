@@ -8,7 +8,7 @@ title: 使用自己的博客URL登录openid帐号
 
 所谓delegation，大意是，你可以在随便一家注册了openid，在登录某网站的时候，验证的URL，写你自己的网站或者博客的URL。不过，要在你的网站的网页头里面加两句，让你注册openid的那个网站做你的认证代理。比如说我，我就在这个博客的HTML的head里面加了这么两句
 
-{% hightlight html %}
+{% highlight html %}
 <link rel="openid.server" href="http://www.myopenid.com/server" />
 <link rel="openid.delegate" href="http://roylez.myopenid.com/" />
 {% endhighlight %}
