@@ -1,0 +1,18 @@
+---
+layout: post
+tags: [openid, myopenid, html, google]
+title: 使用自己的博客URL登录openid帐号
+---
+
+知道openid这东西已经有好一段时间了，但是一直没有兴趣去使用。主要是因为登录的时候要输入一个网址去验证ID，往往这个网址还不短。今天想在[commandlinefu](http://www.commandlinefu.com)发帖，实在忍不了要注册一遍，于是搜了下怎么弄openid。不查不知道，查查发现居然有delegation这么一个做法。不错...
+
+所谓delegation，大意是，你可以在随便一家注册了openid，在登录某网站的时候，验证的URL，写你自己的网站或者博客的URL。不过，要在你的网站的网页头里面加两句，让你注册openid的那个网站做你的认证代理。比如说我，我就在这个博客的HTML的head里面加了这么两句
+
+{% hightlight html %}
+<link rel="openid.server" href="http://www.myopenid.com/server" />
+<link rel="openid.delegate" href="http://roylez.myopenid.com/" />
+{% endhighlight %}
+
+于是，我去任何一家可以用openid登录的网站的时候，验证URL写我这个博客的地址就好了！更妙的是，如果我对myopenid.com不满意了，我也可以换，而不用改变自己登录的习惯。
+
+顺便说一下，google貌似不支持openid代理的...正好用myopenid.com的服务，注册的时候连email都不用填，多好，谢绝跨省。
