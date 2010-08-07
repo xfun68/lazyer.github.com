@@ -89,6 +89,8 @@ tmux要做到跟我的screen一样自动变更标题栏显示程序名或者路�
 * tmux不是在所有\*nix平台上都有，而screen则到处可以找得到。
 * tmux可以用server-info显示终端相关信息，screen里面没有类似功能。
 * screen有nethack模式，tmux没有。
+* tmux有if-shell命令，可以根据shell命令执行结果来执行tmux命令（这个才是screen killer阿）。
+* tmux可以随便横着竖着分割窗口，screen只能一个方向（忘了哪个方向，反正我不用）。
 
 综上所述，个人觉得，如果在tmux支持中文之后，在个人日常使用的电脑上使用tmux还是不错的。在工作的环境中，还是screen更加靠谱和可移植些。可以考虑在Shell的启动文件里面加一句
 
