@@ -1,0 +1,99 @@
+---
+layout: post
+tags: [tmux, screen]
+title: tmux试用感想
+---
+
+不止听一个人在irc说tmux如何好如何好了，只不过说这些话的人，没有一个是我所熟知的朋友。即使他们全都是小白，三人成虎也几乎让我相信了tmux可以在hardstatus里面显示中文。一直懒得尝试tmux，一方面因为我的screenrc已经相当好了，另一方面对于定制下hardstatus都要老多行代码的设计不是太喜欢。不过心里总是痒痒，幻想着一朝配置好了tmux，就不用再费心了。
+
+前些时候终于下定了决心来配一把，目标是达到跟我的screenrc效果一致。我的screen版本是4.00.03（用version命令查询），tmux的版本是1.3（用server-info查询）。
+
+![tmux hardstatus](/images/tmux.png)
+
+图里面，下面的一条是screen hardstatus的效果，上面一条是tmux的。效果基本一致了，配置在下面
+
+**screenrc**
+
+    hardstatus alwayslastline
+    hardstatus string "%{= B}:%{= b}: %{= r}[ %{G}%H%{= r} ] %= %{=b b}%-w%{=rb db}%>%n %t%{-}%+w %=%{= r}[ %{G}%c %{M}%D %m-%d %{r}] %{= b}:%{B}:"
+    terminfo xterm*|rxvt ti@:te@
+    terminfo rxvt-unicode 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+    terminfo xterm* 'XT:hs:ts=\E]2;:fs=\007:ds=\E]2;screen\007'
+    autodetach on		# default: on
+    altscreen on
+    defscrollback 1000
+    msgwait 5
+    msgminwait 2
+    pow_detach_msg "Screen session of \$LOGNAME \$:cr:\$:nl:ended."
+    startup_message off	# default: on
+    vbell off
+    vbell_msg "   Wuff  ----  Wuff!!  "
+    nethack on
+    defutf8 on
+    shell /bin/zsh
+    bindkey -k F1 prev
+    bindkey -k F2 next
+    screen
+    screen
+
+**tmux.conf**
+
+    set-option -g prefix C-a
+    unbind-key C-b
+    bind-key C-a send-prefix
+    bind-key -n F11 previous-window
+    bind-key -n F12 next-window
+    bind-key C-c new-window
+    setw -g mode-keys vi
+    setw -g xterm-keys on
+    unbind %
+    bind | split-window -h
+    bind h split-window -h
+    unbind '"'
+    bind - split-window -v
+    bind v split-window -v
+    set-option -g visual-activity on
+    setw -g monitor-activity on
+    setw -g automatic-rename off
+    setw -g utf8 on
+    set -g base-index 1
+    set -g terminal-overrides "*88col*:colors=88,*256col*:colors=256,xterm*:colors=256"
+    set -g default-terminal "screen-256color"
+    set -g status-utf8 on
+    set -g status-justify centre
+    set -g status-bg default
+    set -g status-left "#[fg=cyan]:#[fg=blue]: #[fg=red][ #[fg=green]#H #[fg=red]]#[default]"
+    set -g status-left-length 20
+    set -g status-right-length 25
+    set -g status-right "#[fg=red][ #[fg=green]%H:%M #[fg=magenta]%a %m-%d #[fg=red]] #[fg=blue]:#[fg=cyan]:#[default]" 
+    setw -g window-status-format '#[fg=blue,bold]#I #T#[default] '
+    setw -g window-status-current-format '#[fg=blue,bold,reverse]#I #T#[default] '
+    #setw -g window-status-alert-fg red
+
+无疑从行数上来比较，screenrc就更加简洁。
+
+tmux要做到跟我的screen一样自动变更标题栏显示程序名或者路径，需要把tmux自身的标题栏变更关掉，即``automatic-rename off``。至于说能够在标题栏里面显示utf8字符，对于拉丁字符确实可以，对于汉字来说，是个笑话。鄙视那些道听途说的人。不用不服气，我自己试过我知道，另外，在下面这个链接里面也有提到。
+
+    http://www.mail-archive.com/tmux-users@lists.sourceforge.net/msg00614.html
+
+所幸的是tmux的作者已经明确表示这个已经在他的todo列表里面了，也许我们可以在一年半载之后用上真正支持中文字符的tmux吧。
+
+下面说下个人对于screen和tmux的比较。
+
+* tmux将会有中文标题支持，screen中文标题遥遥无期
+* tmux的标题需要分开左中右分别定义，并且要指定左和右标题栏的宽度，screen一行代码就全部指定了。
+* tmux的标题似乎只能有一行（欢迎纠错），但是screen可以有两行，分别是hardstatus和caption。
+* tmux可以为有事件发生的窗口专门定义标题格式（alert-bg，alert-fg，alert-attr），这是1.3新加的功能，screen无此功能。
+* tmux可以很方便的把第一个窗口序号改成1，screen不可以。
+* tmux的窗口消息默认是按q之后才消失，screen里面则用msgwait定义消息显示时间。
+* tmux不是在所有\*nix平台上都有，而screen则到处可以找得到。
+* tmux可以用server-info显示终端相关信息，screen里面没有类似功能。
+* screen有nethack模式，tmux没有。
+
+综上所述，个人觉得，如果在tmux支持中文之后，在个人日常使用的电脑上使用tmux还是不错的。在工作的环境中，还是screen更加靠谱和可移植些。可以考虑在Shell的启动文件里面加一句
+
+{% highlight bash %}
+[[ -x /usr/bin/tmux ]] && alias screen=/usr/bin/tmux
+{% endhighlight %}
+
+目前，我还是只用screen。需要tmux动态更改标题栏代码的朋友，可以移步[这里](http://github.com/roylez/dotfiles/blob/master/.zshrc)。
