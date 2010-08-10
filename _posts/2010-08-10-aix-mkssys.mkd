@@ -1,0 +1,33 @@
+---
+layout: post
+tags: [AIX]
+title: AIX里面用mkssys建立可靠的服务进程
+---
+
+最近有个客户在AIX下装net-snmp遇到了些麻烦，那些搞support的居然都搞不定，结果公司销售的人七找八找就找到我头上了。花了点时间，替他们搞定了问题，索性做得更漂亮些，让net-snmp可以像系统自带的服务一样启动。
+
+在Linux下，启动一个服务，一般是运行``/etc/init.d/snmpd start``，或者``service snmpd start``，或者``/etc/rc.d/snmpd start``；可以用类似``/etc/init.d/snmpd status``的命令来查询服务状态。这样启动服务，是很可靠，但是，所有的这样的服务，每个都需要一个脚本放在``/etc/init.d/``这样的目录下，如果服务是发行版自带的还好，一般都提供了这样的脚本，否则就不爽了。自己写守护进程脚本，首先就费时，然后还不敢保证万无一失。
+
+AIX这方面真的是做得很好，所有的服务都是让一个叫做System Resource Controller的东东管理的，比如说启动的时候自动加载，挂了的时候重新运行等等。我用下面的命令就轻松的为客户建立了叫做net-snmp的守护进程。
+
+{% highlight bash %}
+    mkssys -s net-snmp -p /opt/sbin/snmpd -R -Q -u 0 -a "-f" -S -n 15 -f 9
+{% endhighlight %}
+
+简单解释下
+
+* ``-s net-snmp``：这个服务叫做net-snmp
+* ``-p /opt/sbin/snmpd``：其实是运行这个文件的
+* ``-R``：不小心挂了就给我重新启动
+* ``-Q``：只准运行一个snmpd进程
+* ``-u 0``：用root身份运行
+* ``-a "-f"``：传递个``-f``的参数给snmpd
+* ``-S -n 15 -f 9``：终止服务的时候用SIGNAL，和谐终止发送15(SIGTERM)，强制终止发送9(SIGKILL)
+
+然后，就可以用
+
+    startsrc -s net-snmp
+
+来启动，用``stopsrc``来终止，用``lssrc``来查看了，跟AIX自带的服务没什么区别了！如果说要是有点不爽的，恩，那就是为什么建立的时候要叫做``m(a)k(e)s(ub)sys(tem)``，而后面运行的时候明显要叫做``starts(e)r(vi)c(e)``呢？
+
+不管怎么说，客户很满意。
