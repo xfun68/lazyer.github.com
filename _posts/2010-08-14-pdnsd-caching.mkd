@@ -1,0 +1,34 @@
+---
+title: 用pdnsd做dns缓存服务器
+layout: post
+tags: [pdnsd,dnsmasq]
+---
+
+一提到security，公司真的很牛。起码对于我这种网络安全纯白的人来说是这样。不知道什么原因，我的电脑的dns解析速度变得极其之慢了，或许是觉得我上班的时间看的闲杂网页多了些，或许是嫌我irc聊天24小时不断线太过费电，也或许是觉得我老用个ssh进程卡在防火墙那里太过招摇了。查询一下dns查询的时间
+
+    dig google.com
+
+显示的最少几百毫秒，最多5秒左右，基本没法忍了。一怒之下，装了个dnsmasq做dns的缓存和代理，这个很多人都会的，无非是配置里面有一句
+
+    listen-address=127.0.0.1
+
+不错，dig第一次还是那么久，第二次就0ms了。用了一小会，突然发现过一阵子之后，同一个网站的dns解析又变慢了，究其原因，dnsmasq的dns缓存，不是persistent的！也就是说，每过个大约10来分钟，它就自己忘了以前缓存的东西了……
+
+这样显然是不行的，再查，结果就找到pdnsd了。在``/etc/pdnsd.conf``的server段，这样写：
+
+    server {
+            label= "myisp";
+            ip = 208.67.220.220, 8.8.8.8;  # Put your ISP's DNS-server address(es) here.
+            timeout=4;         # Server timeout; this may be much shorter
+            interval=30m;      # Check every 30 minutes.
+            purge_cache=off;   # Keep stale cache entries in case the ISP's
+    }
+
+然后再在global段，改写下面的选项
+
+        min_ttl=96h;
+        max_ttl=1w;
+
+这样就可以咯，缓存的dns记录最少会保留96个小时，强哦。
+
+突然觉得我这样跟公司的制度进行捉迷藏挺猥琐的，呵呵。
