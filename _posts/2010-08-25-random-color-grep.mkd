@@ -4,7 +4,7 @@ tags: [grep,zsh,ascii]
 title: 让grep使用随机颜色进行关键字高亮
 ---
 
-看到这标题，你想的一定差不多是“What the F*uck!”之类，对吗？不错，我这个点子确实是变态和好色的，呵呵。能够实现它，还得感谢变态的zsh。先来看看效果：
+看到这标题，你想的一定差不多是“What the F\*ck!”之类，对吗？不错，我这个点子确实是变态和好色的，呵呵。能够实现它，还得感谢变态的zsh。先来看看效果：
 
 ![grep](/images/colorful_grep.png "grep随机颜色")
 
