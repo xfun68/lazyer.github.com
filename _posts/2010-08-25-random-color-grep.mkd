@@ -19,3 +19,5 @@ alias -g G="|RANDOM=\$(date +%N) GREP_COLOR=\"\$(echo 3\$[RANDOM%6+1]';1;7')\" e
 简单的说，``G``就是一个grep的管道，只不过前面重新定义了下环境变量。``RANDOM=$(date +%N)``，实际上是给``RANDOM``重新取seed，用纳秒显示的时间做seed。``GREP_COLOR``就是grep的颜色了，这里就用``RANDOM``取了随机颜色了。
 
 各位用bash的朋友，不用想了，bash的``RANDOM``不能自己取seed，bash也没有global alias。所以，省省力气吧！;)
+
+（我把这东西告诉了ee，想想ee那酸酸的样子，呵呵）
